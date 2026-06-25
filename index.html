@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/devicon/2.17.0/devicon.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   :root{
     --bg: #090c10;
@@ -122,6 +124,9 @@
     position: relative; min-height: 100vh; display:flex; align-items:center;
     padding: 120px 0 60px; overflow: hidden;
   }
+  .hero-canvas{
+    position:absolute; inset:0; z-index:0; display:block; width:100%; height:100%;
+  }
   .hero-bg{
     position:absolute; inset:0; z-index:0;
     background-image: radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1px);
@@ -222,6 +227,7 @@
 
   /* ---------- stack ---------- */
   .stack{ padding: 120px 0 100px; }
+
   .stack-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
   @media (max-width: 720px){ .stack-grid{ grid-template-columns: 1fr; } }
 
@@ -309,9 +315,42 @@
     [data-reveal]{ opacity:1; transform:none; }
     .stack-card .card-bar-fill{ width:100%; }
   }
+
+  /* ---------- cinematic intro ---------- */
+  .intro-overlay{
+    position: fixed; inset: 0; z-index: 999; background: var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    transition: opacity .7s ease;
+  }
+  .intro-overlay.fading{ opacity: 0; pointer-events: none; }
+  .intro-canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .intro-status{
+    position:relative; z-index:2; font-family: var(--mono);
+    font-size: clamp(0.9rem, 2vw, 1.15rem); color: var(--accent-2); letter-spacing: 0.04em;
+  }
+  .intro-status .cur{
+    display:inline-block; width:8px; height:1em; background: var(--accent);
+    margin-left:4px; vertical-align:-2px; animation: blink 1s steps(1) infinite;
+  }
+  .intro-skip{
+    position:absolute; bottom: 26px; right: 28px; z-index:3;
+    font-family: var(--mono); font-size: 0.78rem; color: var(--text-dim);
+    background: transparent; border: 1px solid var(--border); border-radius: 999px;
+    padding: 8px 16px; cursor: pointer; opacity: 0;
+    transition: opacity .4s ease, color .2s ease, border-color .2s ease;
+  }
+  .intro-skip.show{ opacity: 1; }
+  .intro-skip:hover{ color: var(--text); border-color: var(--accent); }
+  @media (prefers-reduced-motion: reduce){ .intro-overlay{ display:none; } }
 </style>
 </head>
 <body>
+
+<div id="introOverlay" class="intro-overlay">
+  <canvas id="introCanvas" class="intro-canvas"></canvas>
+  <div class="intro-status" id="introStatus">establishing connection<span class="cur">_</span></div>
+  <button class="intro-skip" id="introSkip" type="button">skip intro →</button>
+</div>
 
 <div class="noise-overlay"></div>
 <div class="cursor-glow" id="glow"></div>
@@ -331,6 +370,7 @@
 
 <main>
   <section class="hero" id="hero">
+    <canvas class="hero-canvas" id="heroCanvas"></canvas>
     <div class="hero-bg"></div>
     <div class="wrap hero-inner">
       <div class="terminal-window">
@@ -339,11 +379,11 @@
       </div>
 
       <div>
-        <h1 class="hero-title" data-text="CHEZKO JOMREY TUPAS">CHEZKO JOMREY TUPAS</h1>
+        <h1 class="hero-title" data-text="CHEZKO">CHEZKO</h1>
         <p class="hero-subtitle">Full-Stack Developer<span class="cursor"></span></p>
         <p class="hero-tagline">Building complete systems — from the interface you click to the logic running underneath. Comfortable across the whole stack, not just one layer of it.</p>
         <a href="#stack" class="scroll-cue">
-          scroll    
+          scroll
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
         </a>
       </div>
@@ -510,7 +550,79 @@ drwxr-xr-x  2 chezko  staff  64  directory is empty</span></div>
     hero.classList.add('booted');
   }
 
-  bootSequence();
+  // ---- three.js hero scene: drifting particles + rotating wireframe ----
+  function initHeroScene(){
+    const canvas = document.getElementById('heroCanvas');
+    if (!canvas || !window.THREE || reduceMotion) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+    camera.position.z = 38;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    function resize(){
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // particle field
+    const count = 140;
+    const positions = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      positions[i * 3]     = (Math.random() - 0.5) * 70;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 46;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+    }
+    const particleGeo = new THREE.BufferGeometry();
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const particleMat = new THREE.PointsMaterial({ color: 0xf2b33d, size: 0.55, transparent: true, opacity: 0.7 });
+    const particles = new THREE.Points(particleGeo, particleMat);
+    scene.add(particles);
+
+    // rotating wireframe shape
+    const wireGeo = new THREE.IcosahedronGeometry(14, 1);
+    const wireMat = new THREE.MeshBasicMaterial({ color: 0x56e0c0, wireframe: true, transparent: true, opacity: 0.32 });
+    const wireMesh = new THREE.Mesh(wireGeo, wireMat);
+    wireMesh.position.set(16, -4, -10);
+    scene.add(wireMesh);
+
+    // second, smaller wireframe for depth
+    const wireGeo2 = new THREE.IcosahedronGeometry(6, 0);
+    const wireMat2 = new THREE.MeshBasicMaterial({ color: 0xf2b33d, wireframe: true, transparent: true, opacity: 0.25 });
+    const wireMesh2 = new THREE.Mesh(wireGeo2, wireMat2);
+    wireMesh2.position.set(-20, 8, -6);
+    scene.add(wireMesh2);
+
+    let mouseX = 0, mouseY = 0;
+    if (window.matchMedia('(pointer: fine)').matches) {
+      window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) - 0.5;
+        mouseY = (e.clientY / window.innerHeight) - 0.5;
+      });
+    }
+
+    function animate(){
+      requestAnimationFrame(animate);
+      wireMesh.rotation.x += 0.0018;
+      wireMesh.rotation.y += 0.0026;
+      wireMesh2.rotation.x -= 0.0014;
+      wireMesh2.rotation.y += 0.002;
+      particles.rotation.y += 0.0006;
+
+      camera.position.x += (mouseX * 6 - camera.position.x) * 0.03;
+      camera.position.y += (-mouseY * 4 - camera.position.y) * 0.03;
+      camera.lookAt(scene.position);
+
+      renderer.render(scene, camera);
+    }
+    animate();
+  }
 
   // ---- scroll reveal ----
   const revealEls = document.querySelectorAll('[data-reveal]');
@@ -569,7 +681,136 @@ drwxr-xr-x  2 chezko  staff  64  directory is empty</span></div>
 
     document.addEventListener('mouseleave', () => { dot.style.opacity = 0; ring.style.opacity = 0; });
     document.addEventListener('mouseenter', () => { dot.style.opacity = ''; ring.style.opacity = ''; });
-  }</script>
+  }
+
+  // ---- cinematic intro: warp-speed particle tunnel -> wireframe core -> fade into site ----
+  function runIntro(onComplete){
+    const overlay = document.getElementById('introOverlay');
+    if (!overlay) { onComplete(); return; }
+
+    if (reduceMotion || !window.THREE) {
+      overlay.style.display = 'none';
+      onComplete();
+      return;
+    }
+
+    const canvas = document.getElementById('introCanvas');
+    const statusEl = document.getElementById('introStatus');
+    const skipBtn = document.getElementById('introSkip');
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 0;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    function resize(){
+      renderer.setSize(window.innerWidth, window.innerHeight, false);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // warp-speed particle tunnel
+    const COUNT = 1000;
+    const positions = new Float32Array(COUNT * 3);
+    const speeds = new Float32Array(COUNT);
+    for (let i = 0; i < COUNT; i++) {
+      positions[i * 3]     = (Math.random() - 0.5) * 60;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 60;
+      positions[i * 3 + 2] = -Math.random() * 400;
+      speeds[i] = 1.2 + Math.random() * 2.2;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const mat = new THREE.PointsMaterial({ color: 0xf2b33d, size: 0.9, transparent: true, opacity: 0.9, sizeAttenuation: true });
+    const field = new THREE.Points(geo, mat);
+    scene.add(field);
+
+    // core wireframe that grows in as the warp settles
+    const coreGeo = new THREE.IcosahedronGeometry(8, 1);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0x56e0c0, wireframe: true, transparent: true, opacity: 0 });
+    const core = new THREE.Mesh(coreGeo, coreMat);
+    core.position.set(0, 0, -30);
+    core.scale.setScalar(0.001);
+    scene.add(core);
+
+    let start = null;
+    let warpSpeed = 1;
+    let running = true;
+    let finished = false;
+
+    function tick(now){
+      if (!running) return;
+      if (!start) start = now;
+      const t = (now - start) / 1000;
+
+      if (t < 1.6) {
+        warpSpeed = 1 + t * 6;
+      } else {
+        warpSpeed = Math.max(0.4, warpSpeed * 0.94);
+      }
+
+      const posAttr = geo.attributes.position;
+      for (let i = 0; i < COUNT; i++) {
+        let z = posAttr.array[i * 3 + 2] + speeds[i] * warpSpeed;
+        if (z > 10) {
+          z = -400;
+          posAttr.array[i * 3]     = (Math.random() - 0.5) * 60;
+          posAttr.array[i * 3 + 1] = (Math.random() - 0.5) * 60;
+        }
+        posAttr.array[i * 3 + 2] = z;
+      }
+      posAttr.needsUpdate = true;
+
+      if (t > 1.8) {
+        const grow = Math.min(1, (t - 1.8) / 1.2);
+        core.scale.setScalar(grow);
+        coreMat.opacity = grow * 0.5;
+        core.rotation.x += 0.01;
+        core.rotation.y += 0.014;
+        field.material.opacity = Math.max(0.15, 0.9 - grow * 0.6);
+      }
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+
+    const statusLines = ['establishing connection', 'compiling environment', 'rendering interface', 'ready'];
+    let lineIndex = 0;
+    const statusInterval = setInterval(() => {
+      lineIndex++;
+      if (lineIndex < statusLines.length) {
+        statusEl.innerHTML = statusLines[lineIndex] + '<span class="cur">_</span>';
+      }
+    }, 900);
+
+    setTimeout(() => skipBtn.classList.add('show'), 500);
+
+    function finish(){
+      if (finished) return;
+      finished = true;
+      running = false;
+      clearInterval(statusInterval);
+      overlay.classList.add('fading');
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        onComplete();
+      }, 700);
+    }
+
+    skipBtn.addEventListener('click', finish);
+    setTimeout(finish, 3600);
+    requestAnimationFrame(tick);
+  }
+
+  runIntro(() => {
+    bootSequence();
+    initHeroScene();
+  });
+</script>
 
 </body>
 </html>
