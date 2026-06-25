@@ -62,6 +62,24 @@
     transition: background 0.05s linear;
   }
 
+  /* ---------- custom cursor ---------- */
+  body.cursor-enabled, body.cursor-enabled *{ cursor: none; }
+  .cursor-dot{
+    position: fixed; top:-20px; left:-20px; width:7px; height:7px; border-radius:50%;
+    background: var(--accent); pointer-events:none; z-index: 70;
+    transform: translate(-50%,-50%); opacity:0;
+    transition: opacity .2s ease, width .2s ease, height .2s ease, background .2s ease;
+  }
+  .cursor-ring{
+    position: fixed; top:-20px; left:-20px; width:32px; height:32px; border-radius:50%;
+    border: 1px solid var(--accent-2); pointer-events:none; z-index: 70;
+    transform: translate(-50%,-50%); opacity:0;
+    transition: opacity .2s ease, width .3s ease, height .3s ease, border-color .3s ease, background .3s ease;
+  }
+  body.cursor-enabled .cursor-dot, body.cursor-enabled .cursor-ring{ opacity:1; }
+  .cursor-ring.hovered{ width:52px; height:52px; border-color: var(--accent); background: var(--accent-soft); }
+  .cursor-dot.hovered{ opacity:0; }
+
   .wrap{ max-width: 1080px; margin: 0 auto; padding: 0 28px; }
   .eyebrow{
     font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.04em;
@@ -321,11 +339,11 @@
       </div>
 
       <div>
-        <h1 class="hero-title" data-text="CHEZKO">CHEZKO</h1>
+        <h1 class="hero-title" data-text="CHEZKO JOMREY TUPAS">CHEZKO JOMREY TUPAS</h1>
         <p class="hero-subtitle">Full-Stack Developer<span class="cursor"></span></p>
         <p class="hero-tagline">Building complete systems — from the interface you click to the logic running underneath. Comfortable across the whole stack, not just one layer of it.</p>
         <a href="#stack" class="scroll-cue">
-          scroll
+          scroll    
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
         </a>
       </div>
@@ -514,7 +532,44 @@ drwxr-xr-x  2 chezko  staff  64  directory is empty</span></div>
       glow.style.setProperty('--y', e.clientY + 'px');
     });
   }
-</script>
+
+  // ---- custom cursor (dot + lagging ring) ----
+  if (!reduceMotion && window.matchMedia('(pointer: fine)').matches) {
+    document.body.classList.add('cursor-enabled');
+
+    const dot = document.createElement('div');
+    dot.className = 'cursor-dot';
+    const ring = document.createElement('div');
+    ring.className = 'cursor-ring';
+    document.body.append(dot, ring);
+
+    let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+    let ringX = mouseX, ringY = mouseY;
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX; mouseY = e.clientY;
+      dot.style.left = mouseX + 'px';
+      dot.style.top = mouseY + 'px';
+    });
+
+    function animateRing() {
+      ringX += (mouseX - ringX) * 0.18;
+      ringY += (mouseY - ringY) * 0.18;
+      ring.style.left = ringX + 'px';
+      ring.style.top = ringY + 'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    const hoverTargets = document.querySelectorAll('a, button, .stack-card, .empty-card, .scroll-cue');
+    hoverTargets.forEach(el => {
+      el.addEventListener('mouseenter', () => { ring.classList.add('hovered'); dot.classList.add('hovered'); });
+      el.addEventListener('mouseleave', () => { ring.classList.remove('hovered'); dot.classList.remove('hovered'); });
+    });
+
+    document.addEventListener('mouseleave', () => { dot.style.opacity = 0; ring.style.opacity = 0; });
+    document.addEventListener('mouseenter', () => { dot.style.opacity = ''; ring.style.opacity = ''; });
+  }</script>
 
 </body>
 </html>
