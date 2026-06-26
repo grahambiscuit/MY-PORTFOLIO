@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/devicon/2.17.0/devicon.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   :root{
@@ -69,18 +68,26 @@
   body.cursor-enabled, body.cursor-enabled *{ cursor: none; }
   .cursor-dot{
     position: fixed; top:-20px; left:-20px; width:7px; height:7px; border-radius:50%;
-    background: var(--accent); pointer-events:none; z-index: 70;
+    background: var(--accent); pointer-events:none; z-index: 1100;
     transform: translate(-50%,-50%); opacity:0;
     transition: opacity .2s ease, width .2s ease, height .2s ease, background .2s ease;
   }
   .cursor-ring{
     position: fixed; top:-20px; left:-20px; width:32px; height:32px; border-radius:50%;
-    border: 1px solid var(--accent-2); pointer-events:none; z-index: 70;
+    pointer-events:none; z-index: 1100;
     transform: translate(-50%,-50%); opacity:0;
-    transition: opacity .2s ease, width .3s ease, height .3s ease, border-color .3s ease, background .3s ease;
+    transition: opacity .2s ease, width .3s ease, height .3s ease, background .3s ease;
   }
+  .cursor-ring::after{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    border: 1px dashed var(--accent-2);
+    animation: cursor-spin 6s linear infinite;
+    transition: border-color .3s ease;
+  }
+  @keyframes cursor-spin{ from{ transform: rotate(0deg); } to{ transform: rotate(360deg); } }
   body.cursor-enabled .cursor-dot, body.cursor-enabled .cursor-ring{ opacity:1; }
-  .cursor-ring.hovered{ width:52px; height:52px; border-color: var(--accent); background: var(--accent-soft); }
+  .cursor-ring.hovered{ width:52px; height:52px; background: var(--accent-soft); }
+  .cursor-ring.hovered::after{ border-color: var(--accent); animation-duration: 2.2s; }
   .cursor-dot.hovered{ opacity:0; }
 
   .wrap{ max-width: 1080px; margin: 0 auto; padding: 0 28px; }
@@ -97,23 +104,37 @@
   /* ---------- nav ---------- */
   header.nav{
     position: fixed; top:0; left:0; right:0; z-index: 50;
-    background: rgba(9,12,16,0.72); backdrop-filter: blur(10px);
+    background: rgba(9,12,16,0.78); backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-soft);
   }
+  .nav-led{
+    height: 2px; width: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--violet), var(--accent));
+    background-size: 200% 100%;
+    animation: led-sweep 6s linear infinite;
+  }
+  @keyframes led-sweep{ from{ background-position: 0% 0; } to{ background-position: 200% 0; } }
+
   .nav-inner{
-    max-width: 1080px; margin: 0 auto; padding: 16px 28px;
-    display:flex; align-items:center; justify-content:space-between;
+    max-width: 1080px; margin: 0 auto; padding: 13px 28px;
+    display:flex; align-items:center; justify-content:space-between; gap: 20px;
   }
-  .logo{ font-family: var(--mono); font-weight:600; font-size:0.92rem; color: var(--text); }
-  .logo span{ color: var(--accent); }
-  .nav-links{ display:flex; gap: 28px; list-style:none; margin:0; padding:0; font-family: var(--mono); font-size: 0.84rem; }
-  .nav-links a{ color: var(--text-muted); position:relative; padding-bottom:4px; transition: color .2s; }
-  .nav-links a::after{
-    content:''; position:absolute; left:0; bottom:0; width:0; height:1px; background: var(--accent);
-    transition: width .25s ease;
+  .logo{
+    font-family: var(--mono); font-weight:600; font-size:0.92rem; color: var(--text-muted);
+    display:flex; align-items:center; gap:1px; white-space:nowrap; flex-shrink:0;
   }
-  .nav-links a:hover{ color: var(--text); }
-  .nav-links a:hover::after{ width:100%; }
+  .logo span{ color: var(--accent); font-weight:700; }
+  .logo .caret{ color: var(--accent-2); margin-left:3px; animation: blink 1.3s steps(1) infinite; }
+
+  .nav-links{ display:flex; gap: 2px; list-style:none; margin:0; padding:0; font-family: var(--mono); font-size: 0.8rem; }
+  .nav-links a{
+    display:flex; align-items:center; gap:7px; color: var(--text-muted);
+    padding: 7px 13px; border-radius: 7px; transition: color .2s ease, background .2s ease;
+  }
+  .nav-num{ font-size:0.66rem; color: var(--text-dim); transition: color .2s ease; }
+  .nav-links a:hover{ color: var(--text); background: var(--surface-2); }
+  .nav-links a:hover .nav-num{ color: var(--accent); }
+
   .dot{ width:7px; height:7px; border-radius:50%; background: var(--accent-2); box-shadow: 0 0 8px var(--accent-2); animation: pulse 2.2s infinite; }
   @keyframes pulse{ 0%,100%{ opacity:1;} 50%{ opacity:0.35;} }
 
@@ -226,20 +247,63 @@
   [data-reveal].in-view{ opacity:1; transform: none; }
 
   /* ---------- stack ---------- */
-  .stack{ padding: 120px 0 100px; }
+  .stack{ padding: 120px 0 100px; position: relative; overflow: hidden; }
+  .stack-canvas{ position:absolute; inset:0; width:100%; height:100%; z-index:0; opacity: 0.55; }
 
-  .stack-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
-  @media (max-width: 720px){ .stack-grid{ grid-template-columns: 1fr; } }
+  .stack-carousel-wrap{ position: relative; z-index: 1; }
+
+  /* "digital wardrobe" carousel: one card centered, neighbors peeking at an angle */
+  .carousel-track{
+    position: relative; height: 480px; perspective: 1600px; margin-bottom: 36px;
+  }
+  .carousel-track .stack-card{
+    position: absolute; top: 0; left: 0; width: 400px; cursor: pointer;
+    transition: left .6s cubic-bezier(.22,.68,.36,1), top .6s cubic-bezier(.22,.68,.36,1),
+                transform .6s cubic-bezier(.22,.68,.36,1), opacity .55s ease,
+                border-color .25s ease, box-shadow .3s ease;
+  }
+  .carousel-track .stack-card .card-name{ font-size: 1.6rem; }
+  .carousel-track .stack-card .card-desc{ font-size: 1.08rem; }
+  .carousel-track .stack-card .card-code{ font-size: 0.92rem; padding: 12px 14px; }
+  .carousel-track .stack-card{ padding: 34px; }
+  .carousel-controls{ display:flex; align-items:center; justify-content:center; gap:18px; }
+  .carousel-arrow{
+    width:44px; height:44px; border-radius:50%; border:1px solid var(--border); background: var(--surface);
+    color: var(--text-muted); font-size:1.4rem; line-height:1; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition: border-color .2s ease, color .2s ease, transform .2s ease;
+  }
+  .carousel-arrow:hover{ border-color: var(--accent); color: var(--accent); transform: scale(1.08); }
+  .carousel-dots{ display:flex; gap:8px; }
+  .carousel-dot{
+    width:8px; height:8px; border-radius:50%; background: var(--border); border:none; padding:0; cursor:pointer;
+    transition: background .25s ease, transform .25s ease;
+  }
+  .carousel-dot.active{ background: var(--accent); transform: scale(1.35); }
+
+  .stack-note{
+    text-align:center; margin: 26px auto 0; max-width: 540px; position: relative; z-index: 1;
+    font-family: var(--mono); font-size: 0.82rem; color: var(--text-dim); line-height:1.6;
+  }
+  .stack-note span{ color: var(--accent-2); }
 
   .stack-card{
     background: var(--surface); border:1px solid var(--border); border-radius: var(--radius);
     padding: 22px; transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
   }
-  .stack-card:hover{ transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 14px 34px rgba(0,0,0,0.35); }
-  .stack-card:nth-child(1){ transition-delay: .05s; }
-  .stack-card:nth-child(2){ transition-delay: .12s; }
-  .stack-card:nth-child(3){ transition-delay: .19s; }
-  .stack-card:nth-child(4){ transition-delay: .26s; }
+
+  @media (max-width: 760px){
+    .carousel-track{ height: 400px; }
+    .carousel-track .stack-card{ width: 300px; padding: 26px; }
+    .carousel-track .stack-card .card-name{ font-size: 1.3rem; }
+    .carousel-track .stack-card .card-desc{ font-size: 0.94rem; }
+  }
+
+  @media (max-width: 520px){
+    .carousel-track{ height: 360px; }
+    .carousel-track .stack-card{ width: 250px; padding: 22px; }
+    .carousel-track .stack-card .card-name{ font-size: 1.1rem; }
+    .carousel-track .stack-card .card-desc{ font-size: 0.86rem; }
+  }
 
   .card-code{
     font-family: var(--mono); font-size: 0.8rem; color: var(--text-dim);
@@ -253,7 +317,6 @@
   .card-name{ font-family: var(--mono); font-size: 1.15rem; margin: 0 0 6px; }
   .card-desc{ color: var(--text-muted); font-size: 0.92rem; margin: 0 0 18px; }
 
-  .card-status{ display:flex; align-items:center; gap:8px; font-family: var(--mono); font-size:0.74rem; color: var(--accent-2); margin-bottom:8px; }
   .card-bar{ height:4px; background: var(--border-soft); border-radius: 2px; overflow:hidden; }
   .card-bar-fill{ height:100%; width:0; background: linear-gradient(90deg, var(--accent-2), var(--accent)); transition: width 1.1s ease .2s; }
   .stack-card.in-view .card-bar-fill{ width: 100%; }
@@ -268,16 +331,33 @@
   .term-output .p1{ color: var(--text); }
   .term-output .p2{ color: var(--text-dim); }
 
+  /* reusable hover effect for project cards — cursor-tracking glow + 3D tilt.
+     add class="project-card" to any future real project card to get this too. */
+  .project-card{
+    position: relative; overflow: hidden;
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease, color .25s ease;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .project-card::before{
+    content:''; position:absolute; inset:0; pointer-events:none; opacity:0; z-index:0;
+    background: radial-gradient(260px circle at var(--mx,50%) var(--my,50%), rgba(86,224,192,0.16), transparent 65%);
+    transition: opacity .35s ease;
+  }
+  .project-card:hover::before{ opacity:1; }
+  .project-card:hover{ border-color: var(--accent-2); color: var(--text-muted); box-shadow: 0 26px 54px -18px rgba(0,0,0,0.55); }
+  .project-card > *{ position:relative; z-index:1; }
+
   .empty-card{
     border: 1.5px dashed var(--border); border-radius: var(--radius);
     padding: 46px 24px; text-align:center; color: var(--text-dim);
-    transition: border-color .25s ease, color .25s ease;
   }
-  .empty-card:hover{ border-color: var(--accent-2); color: var(--text-muted); }
   .empty-card .plus{
     width:38px; height:38px; margin: 0 auto 14px; border-radius:50%; border:1px solid var(--border);
     display:flex; align-items:center; justify-content:center; font-family: var(--mono); font-size:1.2rem;
+    transition: border-color .3s ease, transform .3s ease, color .3s ease;
   }
+  .empty-card:hover .plus{ border-color: var(--accent-2); color: var(--accent-2); transform: scale(1.12); }
   .empty-card p{ margin:0; font-family: var(--mono); font-size: 0.88rem; }
   .empty-card span{ display:block; margin-top:6px; font-family: var(--sans); font-size: 0.82rem; color: var(--text-dim); }
 
@@ -296,12 +376,15 @@
   .contact{ padding: 0 0 60px; }
   .contact-line{ font-family: var(--mono); color: var(--text-muted); margin: 0 0 26px; font-size: 0.95rem; }
   .contact-links{ display:flex; flex-wrap:wrap; gap: 14px; margin-bottom: 60px; }
-  .contact-links a{
+  .contact-links a, .copy-email{
     font-family: var(--mono); font-size: 0.88rem; padding: 12px 18px; border:1px solid var(--border);
     border-radius: 8px; color: var(--text-muted); transition: all .2s ease;
+    background: transparent; cursor: pointer; display:inline-flex; align-items:center;
   }
-  .contact-links a:hover{ border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
-  .contact-links a span{ color: var(--accent-2); }
+  .contact-links a:hover, .copy-email:hover{ border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+  .contact-links a span, .copy-email span{ color: var(--accent-2); }
+  .copy-email.copied{ border-color: var(--accent-2); color: var(--accent-2); }
+  .copy-email.copied span{ color: var(--accent-2); }
 
   .footer-bottom{
     border-top: 1px solid var(--border-soft); padding-top: 24px;
@@ -315,6 +398,75 @@
     [data-reveal]{ opacity:1; transform:none; }
     .stack-card .card-bar-fill{ width:100%; }
   }
+
+  /* ---------- who's visiting? role select ---------- */
+  .role-overlay{
+    position: fixed; inset: 0; z-index: 1000; background: var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    transition: opacity .5s ease;
+  }
+  .role-overlay.fading{ opacity: 0; pointer-events: none; }
+  .role-box{ text-align:center; max-width: 580px; padding: 0 24px; }
+  .role-tag{ font-family: var(--mono); color: var(--accent-2); font-size: 0.85rem; margin: 0 0 12px; }
+  .role-question{
+    font-family: var(--mono); font-weight: 700; color: var(--text);
+    font-size: clamp(1.5rem, 4vw, 2.3rem); margin: 0 0 34px;
+  }
+  .role-choices{ display:flex; gap: 18px; flex-wrap: wrap; justify-content:center; }
+  .role-btn{
+    flex: 1; min-width: 220px; max-width: 260px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 30px 20px; cursor: pointer;
+    display:flex; flex-direction:column; align-items:center; gap: 9px;
+    font-family: var(--sans); color: var(--text);
+    transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+  }
+  .role-btn:hover{ border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 18px 36px -12px rgba(0,0,0,0.55); }
+
+  .role-icon{
+    width: 54px; height: 54px; border-radius: 50%; flex-shrink: 0;
+    display:flex; align-items:center; justify-content:center;
+    border: 1px solid var(--border); background: var(--bg-soft); color: var(--text-muted);
+    transition: color .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+  .role-icon svg{ width: 24px; height: 24px; }
+  .role-btn:hover .role-icon{ color: var(--accent); border-color: var(--accent); }
+
+  .role-icon-visitor{ color: var(--accent-2); }
+  .role-btn-visitor:hover{
+    border-color: var(--accent-2);
+    box-shadow: 0 18px 40px -12px rgba(86,224,192,0.4);
+  }
+  .role-btn-visitor:hover .role-icon-visitor{
+    color: var(--accent-2); border-color: var(--accent-2);
+    box-shadow: 0 0 0 5px var(--accent-2-soft);
+  }
+
+  .role-label{ font-family: var(--mono); font-weight: 700; font-size: 1.05rem; }
+  @media (prefers-reduced-motion: reduce){ .role-overlay{ transition: none; } }
+
+  /* recruiter-only quick-facts bar */
+  .recruiter-bar{ display:none; }
+  body.mode-recruiter .recruiter-bar{
+    display:flex; align-items:center; justify-content:center; gap: 18px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+    padding: 10px 22px; margin-bottom: 30px;
+    font-family: var(--mono); font-size: 0.8rem; color: var(--text-muted);
+  }
+  .rb-cta{
+    color: var(--accent); border: 1px solid var(--accent); border-radius: 999px;
+    padding: 5px 14px; transition: background .2s ease, color .2s ease;
+  }
+  .rb-cta:hover{ background: var(--accent); color: #0a0e14; }
+
+  /* recruiter-only certificates & webinars section */
+  .credentials{ display: none; padding: 0 0 100px; }
+  body.mode-recruiter .credentials{ display: block; }
+  .credentials-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
+  @media (max-width: 720px){ .credentials-grid{ grid-template-columns: 1fr; } }
+  .cred-label{ font-family: var(--mono); font-size: 0.95rem; color: var(--text-muted); margin: 0 0 14px; font-weight: 600; }
+  .nav-credentials{ display: none; }
+  body.mode-recruiter .nav-credentials{ display: block; }
+
 
   /* ---------- cinematic intro ---------- */
   .intro-overlay{
@@ -346,6 +498,34 @@
 </head>
 <body>
 
+<div id="roleOverlay" class="role-overlay">
+  <div class="role-box">
+    <p class="role-tag">$ whoami --select</p>
+    <h2 class="role-question">who's visiting?</h2>
+    <div class="role-choices">
+      <button class="role-btn" id="roleRecruiter" type="button">
+        <span class="role-icon role-icon-recruiter">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="7" width="18" height="13" rx="2"/>
+            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+            <path d="M3 13h18"/>
+          </svg>
+        </span>
+        <span class="role-label">Recruiter</span>
+      </button>
+      <button class="role-btn role-btn-visitor" id="roleVisitor" type="button">
+        <span class="role-icon role-icon-visitor">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>
+            <path d="M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/>
+          </svg>
+        </span>
+        <span class="role-label">Just visiting</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="introOverlay" class="intro-overlay">
   <canvas id="introCanvas" class="intro-canvas"></canvas>
   <div class="intro-status" id="introStatus">establishing connection<span class="cur">_</span></div>
@@ -356,13 +536,15 @@
 <div class="cursor-glow" id="glow"></div>
 
 <header class="nav">
+  <div class="nav-led"></div>
   <div class="nav-inner">
-    <div class="logo">chezko<span>@</span>dev:~$</div>
+    <a href="#hero" class="logo">[<span>chezko</span>@dev]<span class="caret">~$</span></a>
     <ul class="nav-links">
-      <li><a href="#stack">stack</a></li>
-      <li><a href="#projects">projects</a></li>
-      <li><a href="#about">about</a></li>
-      <li><a href="#contact">connect</a></li>
+      <li><a href="#stack"><span class="nav-num">01</span>stack</a></li>
+      <li class="nav-credentials"><a href="#credentials"><span class="nav-num">02</span>credentials</a></li>
+      <li><a href="#projects"><span class="nav-num">03</span>projects</a></li>
+      <li><a href="#about"><span class="nav-num">04</span>about</a></li>
+      <li><a href="#contact"><span class="nav-num">05</span>connect</a></li>
     </ul>
   </div>
 </header>
@@ -372,6 +554,11 @@
     <canvas class="hero-canvas" id="heroCanvas"></canvas>
     <div class="hero-bg"></div>
     <div class="wrap hero-inner">
+      <div class="recruiter-bar" id="recruiterBar">
+        <span class="rb-item">🎓 OJT Trainee — Full-Stack Developer</span>
+        <span class="rb-item">🧰 HTML · Python · Java · JavaScript</span>
+        <a class="rb-cta" href="#contact">Contact me →</a>
+      </div>
       <div class="terminal-window">
         <div class="terminal-bar"><span>chezko@portfolio: ~</span><span class="dot"></span></div>
         <div class="terminal-body" id="termBody"></div>
@@ -403,45 +590,84 @@
   </div>
 
   <section class="stack" id="stack">
+    <canvas class="stack-canvas" id="stackCanvas"></canvas>
     <div class="wrap">
       <div class="section-head" data-reveal>
         <p class="eyebrow">// the languages running this build</p>
         <h2>~/stack</h2>
       </div>
-      <div class="stack-grid">
+      <div class="stack-carousel-wrap" data-reveal>
+        <div class="carousel-track" id="stackGrid">
 
-        <div class="stack-card" data-reveal>
-          <div class="card-code">&lt;<span class="k">section</span> <span class="f">class</span>=<span class="s">"ui"</span>&gt;</div>
-          <h3 class="card-name">HTML</h3>
-          <p class="card-desc">Semantic structure & accessible markup — the foundation every interface stands on.</p>
-          <div class="card-status"><span class="dot"></span> active</div>
-          <div class="card-bar"><div class="card-bar-fill"></div></div>
+          <div class="stack-card" id="card-html">
+            <div class="card-code">&lt;<span class="k">section</span> <span class="f">class</span>=<span class="s">"ui"</span>&gt;</div>
+            <h3 class="card-name">HTML</h3>
+            <p class="card-desc">Semantic structure & accessible markup — the foundation every interface stands on.</p>
+            <div class="card-bar"><div class="card-bar-fill"></div></div>
+          </div>
+
+          <div class="stack-card" id="card-python">
+            <div class="card-code"><span class="k">def</span> <span class="f">automate</span>(): <span class="k">return</span> system</div>
+            <h3 class="card-name">Python</h3>
+            <p class="card-desc">Scripting, automation, and backend logic for systems that need to think.</p>
+            <div class="card-bar"><div class="card-bar-fill"></div></div>
+          </div>
+
+          <div class="stack-card" id="card-java">
+            <div class="card-code"><span class="k">public class</span> <span class="f">Service</span> {}</div>
+            <h3 class="card-name">Java</h3>
+            <p class="card-desc">Structured, object-oriented architecture for backends built to scale.</p>
+            <div class="card-bar"><div class="card-bar-fill"></div></div>
+          </div>
+
+          <div class="stack-card" id="card-js">
+            <div class="card-code"><span class="k">const</span> flow = () =&gt; app.<span class="f">run</span>();</div>
+            <h3 class="card-name">JavaScript</h3>
+            <p class="card-desc">Interactivity and logic that bring an interface to life, end to end.</p>
+            <div class="card-bar"><div class="card-bar-fill"></div></div>
+          </div>
+
         </div>
 
-        <div class="stack-card" data-reveal>
-          <div class="card-code"><span class="k">def</span> <span class="f">automate</span>(): <span class="k">return</span> system</div>
-          <h3 class="card-name">Python</h3>
-          <p class="card-desc">Scripting, automation, and backend logic for systems that need to think.</p>
-          <div class="card-status"><span class="dot"></span> active</div>
-          <div class="card-bar"><div class="card-bar-fill"></div></div>
+        <div class="carousel-controls">
+          <button class="carousel-arrow prev" id="carouselPrev" type="button" aria-label="Previous language">‹</button>
+          <div class="carousel-dots" id="carouselDots">
+            <button class="carousel-dot active" data-index="0" type="button" aria-label="Show HTML"></button>
+            <button class="carousel-dot" data-index="1" type="button" aria-label="Show Python"></button>
+            <button class="carousel-dot" data-index="2" type="button" aria-label="Show Java"></button>
+            <button class="carousel-dot" data-index="3" type="button" aria-label="Show JavaScript"></button>
+          </div>
+          <button class="carousel-arrow next" id="carouselNext" type="button" aria-label="Next language">›</button>
         </div>
+      </div>
 
-        <div class="stack-card" data-reveal>
-          <div class="card-code"><span class="k">public class</span> <span class="f">Service</span> {}</div>
-          <h3 class="card-name">Java</h3>
-          <p class="card-desc">Structured, object-oriented architecture for backends built to scale.</p>
-          <div class="card-status"><span class="dot"></span> active</div>
-          <div class="card-bar"><div class="card-bar-fill"></div></div>
+      <p class="stack-note" data-reveal><span>//</span> still learning, still building — this stack keeps growing one project at a time.</p>
+    </div>
+  </section>
+
+  <section class="credentials" id="credentials">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <p class="eyebrow">// visible to recruiters</p>
+        <h2>~/credentials</h2>
+      </div>
+      <div class="credentials-grid">
+        <div>
+          <h3 class="cred-label">Certificates</h3>
+          <div class="empty-card project-card" data-reveal>
+            <div class="plus">+</div>
+            <p>No certificates added yet</p>
+            <span>This space is ready whenever you are.</span>
+          </div>
         </div>
-
-        <div class="stack-card" data-reveal>
-          <div class="card-code"><span class="k">const</span> flow = () =&gt; app.<span class="f">run</span>();</div>
-          <h3 class="card-name">JavaScript</h3>
-          <p class="card-desc">Interactivity and logic that bring an interface to life, end to end.</p>
-          <div class="card-status"><span class="dot"></span> active</div>
-          <div class="card-bar"><div class="card-bar-fill"></div></div>
+        <div>
+          <h3 class="cred-label">Webinars</h3>
+          <div class="empty-card project-card" data-reveal>
+            <div class="plus">+</div>
+            <p>No webinars added yet</p>
+            <span>This space is ready whenever you are.</span>
+          </div>
         </div>
-
       </div>
     </div>
   </section>
@@ -455,7 +681,7 @@
       <div class="term-output" data-reveal><span class="p1">$ ls -la ~/projects</span>
 <span class="p2">total 0
 drwxr-xr-x  2 chezko  staff  64  directory is empty</span></div>
-      <div class="empty-card" data-reveal>
+      <div class="empty-card project-card" data-reveal>
         <div class="plus">+</div>
         <p>No projects added yet</p>
         <span>This space is ready whenever you are.</span>
@@ -486,7 +712,9 @@ drwxr-xr-x  2 chezko  staff  64  directory is empty</span></div>
       </div>
       <p class="contact-line" data-reveal>$ connect --with=chezko<span class="cursor" style="display:inline-block;width:8px;height:1em;background:var(--accent);vertical-align:-2px;margin-left:6px;"></span></p>
       <div class="contact-links" data-reveal>
-        <a href="mailto:your.email@example.com"><span>--</span>email</a>
+        <button class="copy-email" type="button" data-email="your.email@example.com">
+          <span>--</span><span class="copy-email-text">email</span>
+        </button>
         <a href="https://github.com/" target="_blank" rel="noopener"><span>--</span>github</a>
         <a href="https://linkedin.com/" target="_blank" rel="noopener"><span>--</span>linkedin</a>
       </div>
@@ -622,6 +850,227 @@ drwxr-xr-x  2 chezko  staff  64  directory is empty</span></div>
     }
     animate();
   }
+
+  // ---- three.js stack scene: a single slow-spinning wireframe core behind the carousel ----
+  function initStackScene(){
+    const canvas = document.getElementById('stackCanvas');
+    if (!canvas || !window.THREE || reduceMotion) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+    camera.position.z = 34;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    function resize(){
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function roundRectPath(ctx, x, y, w, h, r){
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function makeLabelTexture(text, color){
+      const size = 256;
+      const c = document.createElement('canvas');
+      c.width = size; c.height = size;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#10141c';
+      roundRectPath(ctx, 4, 4, size - 8, size - 8, 30);
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      roundRectPath(ctx, 4, 4, size - 8, size - 8, 30);
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.font = '700 ' + (text.length > 4 ? 34 : 44) + 'px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, size / 2, size / 2 + 2);
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    const langs = [
+      { text: 'HTML',       color: '#f2b33d', pos: [-17, 7, -8] },
+      { text: 'PYTHON',     color: '#56e0c0', pos: [16, -6, -12] },
+      { text: 'JAVA',       color: '#f2b33d', pos: [-15, -9, -16] },
+      { text: 'JS',         color: '#56e0c0', pos: [17, 8, -6] },
+    ];
+
+    const tiles = langs.map(l => {
+      const tex = makeLabelTexture(l.text, l.color);
+      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), mat);
+      mesh.position.set(l.pos[0], l.pos[1], l.pos[2]);
+      mesh.userData.baseY = l.pos[1];
+      mesh.userData.speed = 0.005 + Math.random() * 0.004;
+      scene.add(mesh);
+      return mesh;
+    });
+
+    function animate(t){
+      requestAnimationFrame(animate);
+      const time = t * 0.001;
+      tiles.forEach((m, i) => {
+        m.rotation.y += m.userData.speed;
+        m.position.y = m.userData.baseY + Math.sin(time * 0.5 + i * 1.4) * 1.4;
+      });
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(animate);
+  }
+
+  // ---- click-to-copy email ----
+  (function initCopyEmail(){
+    const btn = document.querySelector('.copy-email');
+    if (!btn) return;
+    const textEl = btn.querySelector('.copy-email-text');
+    const email = btn.getAttribute('data-email');
+    let resetTimer = null;
+
+    function showCopied(){
+      btn.classList.add('copied');
+      if (textEl) textEl.textContent = 'copied!';
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
+        btn.classList.remove('copied');
+        if (textEl) textEl.textContent = 'email';
+      }, 1800);
+    }
+
+    function fallbackCopy(text){
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    btn.addEventListener('click', () => {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email).then(showCopied).catch(() => { fallbackCopy(email); showCopied(); });
+      } else {
+        fallbackCopy(email);
+        showCopied();
+      }
+    });
+  })();
+
+  // ---- project cards: cursor-tracking glow + 3D tilt ----
+  (function initProjectCards(){
+    const cards = document.querySelectorAll('.project-card');
+    cards.forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mx', x + 'px');
+        card.style.setProperty('--my', y + 'px');
+        if (!reduceMotion) {
+          const rotateY = ((x - rect.width / 2) / (rect.width / 2)) * 6;
+          const rotateX = -((y - rect.height / 2) / (rect.height / 2)) * 6;
+          card.style.transform = `perspective(700px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+        }
+      });
+      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    });
+  })();
+
+  // ---- "digital wardrobe" carousel: center card in focus, neighbors peeking in 3D ----
+  (function initStackCarousel(){
+    const track = document.getElementById('stackGrid');
+    const prevBtn = document.getElementById('carouselPrev');
+    const nextBtn = document.getElementById('carouselNext');
+    const dotsWrap = document.getElementById('carouselDots');
+    if (!track) return;
+
+    const cards = Array.from(track.querySelectorAll('.stack-card'));
+    const dots = dotsWrap ? Array.from(dotsWrap.querySelectorAll('.carousel-dot')) : [];
+    const count = cards.length;
+    let activeIndex = 0;
+    let autoTimer = null;
+
+    function place(card, offset){
+      const w = track.clientWidth || 700;
+      const spread = Math.min(w * 0.32, 380);
+
+      let x = 0, rotY = 0, scale = 1, opacity = 1, z = 10, blur = 0;
+
+      if (offset === 0) {
+        x = 0; rotY = 0; scale = 1; opacity = 1; z = 10; blur = 0;
+      } else if (Math.abs(offset) === 1) {
+        x = offset * spread; rotY = offset * -32; scale = 0.8; opacity = 0.55; z = 5; blur = 1;
+      } else {
+        x = offset * spread * 1.15; rotY = offset * -32; scale = 0.6; opacity = 0; z = 1; blur = 2;
+      }
+
+      const cw = card.offsetWidth || 250, ch = card.offsetHeight || 260;
+      card.style.left = ((w / 2) - cw / 2 + x) + 'px';
+      card.style.top = (((track.clientHeight || 320) / 2) - ch / 2) + 'px';
+      card.style.transform = `rotateY(${rotY}deg) scale(${scale})`;
+      card.style.opacity = opacity;
+      card.style.zIndex = z;
+      card.style.filter = blur ? `blur(${blur}px)` : 'none';
+    }
+
+    function render(){
+      cards.forEach((card, i) => {
+        let offset = i - activeIndex;
+        if (offset > count / 2) offset -= count;
+        if (offset < -count / 2) offset += count;
+        place(card, offset);
+      });
+      dots.forEach((d, i) => d.classList.toggle('active', i === activeIndex));
+    }
+
+    function goTo(i){
+      activeIndex = ((i % count) + count) % count;
+      render();
+    }
+    function next(){ goTo(activeIndex + 1); }
+    function prev(){ goTo(activeIndex - 1); }
+
+    function startAuto(){
+      if (reduceMotion) return;
+      stopAuto();
+      autoTimer = setInterval(next, 4200);
+    }
+    function stopAuto(){ if (autoTimer) clearInterval(autoTimer); autoTimer = null; }
+
+    if (prevBtn) prevBtn.addEventListener('click', () => { prev(); startAuto(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { next(); startAuto(); });
+    dots.forEach((d, i) => d.addEventListener('click', () => { goTo(i); startAuto(); }));
+    cards.forEach((card, i) => {
+      card.addEventListener('click', () => {
+        if (i !== activeIndex) { goTo(i); startAuto(); }
+      });
+    });
+
+    track.addEventListener('mouseenter', stopAuto);
+    track.addEventListener('mouseleave', startAuto);
+
+    window.addEventListener('resize', render);
+
+    render();
+    startAuto();
+  })();
 
   // ---- scroll reveal ----
   const revealEls = document.querySelectorAll('[data-reveal]');
@@ -805,10 +1254,37 @@ drwxr-xr-x  2 chezko  staff  64  directory is empty</span></div>
     requestAnimationFrame(tick);
   }
 
-  runIntro(() => {
+  function startSite(){
     bootSequence();
     initHeroScene();
-  });
+    initStackScene();
+  }
+
+  // ---- who's visiting? recruiter skips straight in, visitor gets the full intro ----
+  (function initRoleSelect(){
+    const overlay = document.getElementById('roleOverlay');
+    const recruiterBtn = document.getElementById('roleRecruiter');
+    const visitorBtn = document.getElementById('roleVisitor');
+    const introOverlay = document.getElementById('introOverlay');
+    if (!overlay || !recruiterBtn || !visitorBtn) { startSite(); return; }
+
+    function choose(role){
+      document.body.classList.add(role === 'recruiter' ? 'mode-recruiter' : 'mode-visitor');
+      overlay.classList.add('fading');
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        if (role === 'recruiter') {
+          if (introOverlay) introOverlay.style.display = 'none';
+          startSite();
+        } else {
+          runIntro(startSite);
+        }
+      }, 500);
+    }
+
+    recruiterBtn.addEventListener('click', () => choose('recruiter'));
+    visitorBtn.addEventListener('click', () => choose('visitor'));
+  })();
 </script>
 
 </body>
