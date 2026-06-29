@@ -13,24 +13,24 @@
 <link rel="manifest" href="/MY-PORTFOLIO/site.webmanifest">
 
 <!-- SEO -->
-<title>Chezko Jomrey Tupas | Full-Stack Developer Portfolio</title>
+<title>Chezko Jomrey Tupas | Front-End Developer Portfolio</title>
 
-<meta name="description" content="Portfolio of Chezko Jomrey Tupas, a Full-Stack Developer specializing in HTML, CSS, JavaScript, Python, Java, Three.js, and modern web experiences.">
+<meta name="description" content="Portfolio of Chezko Jomrey Tupas, a Front-End Developer skilled in HTML, CSS, JavaScript, and Three.js, with working knowledge of Python and Java for backend logic.">
 
 <meta name="robots" content="index, follow">
 
 <link rel="canonical" href="https://grahambiscuit.github.io/MY-PORTFOLIO/">
 
 <!-- Open Graph -->
-<meta property="og:title" content="Chezko Jomrey Tupas | Full-Stack Developer">
-<meta property="og:description" content="Modern interactive portfolio showcasing projects, skills, and full-stack development experience.">
+<meta property="og:title" content="Chezko Jomrey Tupas | Front-End Developer">
+<meta property="og:description" content="Modern interactive portfolio showcasing projects, skills, and front-end development experience.">
 <meta property="og:url" content="https://grahambiscuit.github.io/MY-PORTFOLIO/">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://grahambiscuit.github.io/MY-PORTFOLIO/android-chrome-512x512.png">
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Chezko Jomrey Tupas | Full-Stack Developer">
+<meta name="twitter:title" content="Chezko Jomrey Tupas | Front-End Developer">
 <meta name="twitter:description" content="Modern interactive portfolio showcasing projects and skills.">
 <meta name="twitter:image" content="https://grahambiscuit.github.io/MY-PORTFOLIO/android-chrome-512x512.png">
 
@@ -40,7 +40,7 @@
   "@type": "Person",
   "name": "Chezko Jomrey Tupas",
   "url": "https://grahambiscuit.github.io/MY-PORTFOLIO/",
-  "jobTitle": "Full-Stack Developer",
+  "jobTitle": "Front-End Developer",
   "image": "https://grahambiscuit.github.io/MY-PORTFOLIO/android-chrome-512x512.png",
   "sameAs": [
     "https://github.com/grahambiscuit"
@@ -301,6 +301,7 @@
   /* "digital wardrobe" carousel: one card centered, neighbors peeking at an angle */
   .carousel-track{
     position: relative; height: 480px; perspective: 1600px; margin-bottom: 36px;
+    touch-action: pan-y;
   }
   .carousel-track .stack-card{
     position: absolute; top: 0; left: 0; width: 400px; cursor: pointer;
@@ -325,6 +326,14 @@
     transition: background .25s ease, transform .25s ease;
   }
   .carousel-dot.active{ background: var(--accent); transform: scale(1.35); }
+
+  .swipe-hint{ display: none; }
+  @media (hover: none) and (pointer: coarse){
+    .swipe-hint{
+      display: block; text-align: center; margin: 14px 0 0;
+      font-family: var(--mono); font-size: 0.78rem; color: var(--text-dim); letter-spacing: 0.05em;
+    }
+  }
 
   .stack-note{
     text-align:center; margin: 26px auto 0; max-width: 540px; position: relative; z-index: 1;
@@ -601,7 +610,7 @@
     <div class="hero-bg"></div>
     <div class="wrap hero-inner">
       <div class="recruiter-bar" id="recruiterBar">
-        <span class="rb-item">OJT Trainee — Full-Stack Developer</span>
+        <span class="rb-item">OJT Trainee — Front-End Developer</span>
         <span class="rb-item">HTML · Python · Java · JavaScript</span>
         <a class="rb-cta" href="#contact">Contact me →</a>
       </div>
@@ -612,8 +621,8 @@
 
       <div>
         <h1 class="hero-title" data-text="CHEZKO JOMREY TUPAS">CHEZKO JOMREY TUPAS</h1>
-        <p class="hero-subtitle">Full-Stack Developer<span class="cursor"></span></p>
-        <p class="hero-tagline">Building complete systems — from the interface you click to the logic running underneath. Comfortable across the whole stack, not just one layer of it.</p>
+        <p class="hero-subtitle">Front-End Developer<span class="cursor"></span></p>
+        <p class="hero-tagline">Building interfaces that feel as good as they look — clean structure, smooth interaction, and the small details that make it click.</p>
         <a href="#stack" class="scroll-cue">
           scroll
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
@@ -625,12 +634,12 @@
   <div class="ticker">
     <div class="ticker-track">
       <div class="ticker-content">
-        <span><b>HTML</b></span><span><b>PYTHON</b></span><span><b>JAVA</b></span><span><b>JAVASCRIPT</b></span><span>FULL STACK</span>
-        <span><b>HTML</b></span><span><b>PYTHON</b></span><span><b>JAVA</b></span><span><b>JAVASCRIPT</b></span><span>FULL STACK</span>
+        <span><b>HTML</b></span><span><b>PYTHON</b></span><span><b>JAVA</b></span><span><b>JAVASCRIPT</b></span><span>FRONT END</span>
+        <span><b>HTML</b></span><span><b>PYTHON</b></span><span><b>JAVA</b></span><span><b>JAVASCRIPT</b></span><span>FRONT END</span>
       </div>
       <div class="ticker-content">
-        <span><b>HTML</b></span><span><b>PYTHON</b></span><span><b>JAVA</b></span><span><b>JAVASCRIPT</b></span><span>FULL STACK</span>
-        <span><b>HTML</b></span><span><b>PYTHON</b></span><span><b>JAVA</b></span><span><b>JAVASCRIPT</b></span><span>FULL STACK</span>
+        <span><b>HTML</b></span><span><b>PYTHON</b></span><span><b>JAVA</b></span><span><b>JAVASCRIPT</b></span><span>FRONT END</span>
+        <span><b>HTML</b></span><span><b>PYTHON</b></span><span><b>JAVA</b></span><span><b>JAVASCRIPT</b></span><span>FRONT END</span>
       </div>
     </div>
   </div>
@@ -685,6 +694,7 @@
           </div>
           <button class="carousel-arrow next" id="carouselNext" type="button" aria-label="Next language">›</button>
         </div>
+        <p class="swipe-hint">← swipe →</p>
       </div>
 
       <p class="stack-note" data-reveal><span>//</span> still learning, still building — this stack keeps growing one project at a time.</p>
@@ -743,9 +753,9 @@ drwxr-xr-x  2 chezko  staff  64  directory is empty</span></div>
       </div>
       <div class="about-content" data-reveal>
         <span class="tag">#&nbsp;about</span>
-        <p>Full-stack developer who likes working across the <strong>entire</strong> stack — markup, styling, backend logic, and the architecture that ties it together.</p>
-        <p>Equally comfortable in HTML, Python, Java, and JavaScript depending on what the problem actually calls for, rather than reaching for one tool out of habit.</p>
-        <p>Focused on building complete, end-to-end systems — not isolated pieces.</p>
+        <p>Front-end developer who's all about building interfaces that work just as well as they look — clean markup, solid styling, and the interaction details that tie it all together.</p>
+        <p>Comfortable in HTML, CSS, and JavaScript for building interfaces, with working knowledge of Python and Java for backend logic when a project calls for it.</p>
+        <p>Focused on building interfaces that are fast, accessible, and genuinely enjoyable to use.</p>
       </div>
     </div>
   </section>
@@ -1103,14 +1113,40 @@ drwxr-xr-x  2 chezko  staff  64  directory is empty</span></div>
     if (prevBtn) prevBtn.addEventListener('click', () => { prev(); startAuto(); });
     if (nextBtn) nextBtn.addEventListener('click', () => { next(); startAuto(); });
     dots.forEach((d, i) => d.addEventListener('click', () => { goTo(i); startAuto(); }));
+
+    let isSwiping = false;
     cards.forEach((card, i) => {
       card.addEventListener('click', () => {
+        if (isSwiping) return;
         if (i !== activeIndex) { goTo(i); startAuto(); }
       });
     });
 
     track.addEventListener('mouseenter', stopAuto);
     track.addEventListener('mouseleave', startAuto);
+
+    // ---- touch swipe (iOS, Android, iPad, any touchscreen) ----
+    let touchStartX = 0, touchStartY = 0, touchDeltaX = 0;
+    track.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchDeltaX = 0;
+      stopAuto();
+    }, { passive: true });
+
+    track.addEventListener('touchmove', (e) => {
+      touchDeltaX = e.touches[0].clientX - touchStartX;
+    }, { passive: true });
+
+    track.addEventListener('touchend', () => {
+      const threshold = 36;
+      if (Math.abs(touchDeltaX) > threshold) {
+        isSwiping = true;
+        if (touchDeltaX < 0) next(); else prev();
+        setTimeout(() => { isSwiping = false; }, 60);
+      }
+      startAuto();
+    });
 
     window.addEventListener('resize', render);
 
